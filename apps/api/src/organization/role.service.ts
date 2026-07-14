@@ -69,7 +69,7 @@ export class OrganizationRoleService {
       const base = { organizationId, roleId, actorUserId };
       for (const permissionId of granted) await this.repository.audit(actorUserId, 'organization.permission.granted', { ...base, permissionId }, transaction);
       for (const permissionId of revoked) await this.repository.audit(actorUserId, 'organization.permission.revoked', { ...base, permissionId }, transaction);
-      if (granted.length) await this.repository.outbox(OrganizationEvent.PermissionGranted, 'Role', roleId, organizationId, { ...base, permissionIds: granted });
+      if (granted.length) await this.repository.outbox(OrganizationEvent.PermissionGranted, 'Role', roleId, organizationId, { ...base, permissionIds: granted }, transaction);
       return { accepted: true };
     });
   }

@@ -1,4 +1,4 @@
-import { Prisma, PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import { randomUUID } from 'node:crypto';
 import type { OutboxEventHandler, OutboxRecord, WorkerMetrics } from './types';
 
@@ -27,11 +27,11 @@ export class OutboxWorker {
 
   async claim(): Promise<OutboxRecord[]> {
     const leaseUntil = new Date(Date.now() + this.config.leaseTimeoutMs);
-    return this.prisma.$queryRaw<OutboxRecord[]>(Prisma.sql`
+    return this.prisma.$queryRaw<OutboxRecord[]>`
       UPDATE "OutboxEvent" AS event SET "status" = 'PROCESSING', "leaseOwner" = ${this.workerId}, "leaseExpiresAt" = ${leaseUntil}, "attempts" = event."attempts" + 1
       FROM (SELECT "id" FROM "OutboxEvent" WHERE ("status" = 'PENDING' AND "availableAt" <= NOW()) OR ("status" = 'PROCESSING' AND "leaseExpiresAt" <= NOW()) ORDER BY "createdAt" FOR UPDATE SKIP LOCKED LIMIT ${this.config.batchSize}) AS claim
       WHERE event."id" = claim."id"
-      RETURNING event."id", event."eventType", event."aggregateType", event."aggregateId", event."organizationId", event."payload", event."attempts", event."createdAt"`);
+      RETURNING event."id", event."eventType", event."aggregateType", event."aggregateId", event."organizationId", event."payload", event."attempts", event."createdAt"`;
   }
 
   private async process(event: OutboxRecord): Promise<void> {

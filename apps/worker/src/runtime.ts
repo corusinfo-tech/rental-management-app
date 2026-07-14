@@ -1,5 +1,5 @@
 import { createServer, type Server } from 'node:http';
-import { Prisma, PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import Redis from 'ioredis';
 import { createOrganizationOutboxWorker } from './outbox/organization-outbox-worker';
 import type { OutboxWorker } from './outbox/outbox-worker';
@@ -107,7 +107,7 @@ export class WorkerRuntime {
     const started = performance.now();
     try {
       await this.prisma.$connect();
-      await this.prisma.$queryRaw(Prisma.sql`SELECT 1`);
+      await this.prisma.$queryRaw`SELECT 1`;
       const probe = { healthy: true, latencyMs: Math.round(performance.now() - started) };
       this.lastDatabaseProbe = probe;
       return probe;

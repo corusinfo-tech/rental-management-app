@@ -10,7 +10,9 @@ export class RouteOrganizationContextGuard implements CanActivate {
     const request = context.switchToHttp().getRequest<IdentityRequest>();
     const organizationId = request.params?.id;
     if (!organizationId || !UUID_PATTERN.test(organizationId)) throw new BadRequestException('Organization route parameter must be a UUID');
-    const supplied = request.header('x-organization-id');
+    const rawHeader = request.headers['x-organization-id'];
+    if (Array.isArray(rawHeader) && rawHeader.length !== 1) throw new BadRequestException('x-organization-id must be supplied once');
+    const supplied = Array.isArray(rawHeader) ? rawHeader[0] : rawHeader;
     if (supplied && supplied !== organizationId) throw new BadRequestException('x-organization-id does not match the organization route parameter');
     request.organizationId = organizationId;
     return true;

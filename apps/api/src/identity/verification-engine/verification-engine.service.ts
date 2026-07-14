@@ -73,7 +73,7 @@ export class VerificationEngine {
         await this.repository.revokeVerification(active.id, transaction);
         await this.repository.destroyVerificationDeliveryEnvelope(active.id, transaction);
         channel.destroy();
-        await this.audit(active.userId, 'identity.verification.revoked', this.metadata(active, input.correlationId), transaction);
+        await this.audit(active.userId ?? undefined, 'identity.verification.revoked', this.metadata(active, input.correlationId), transaction);
         await this.event(IdentityEventType.VerificationRevoked, active.id, input.organizationId, this.outboxPayload(active.id, input.organizationId, active.userId, input.correlationId), transaction);
         return this.create({ ...input, ...subject, resendCount: active.resendCount + 1 }, transaction, IdentityEventType.VerificationResent);
       }
@@ -201,7 +201,7 @@ export class VerificationEngine {
     return { verificationId: verification.id, subjectType: verification.subjectType, subjectReferenceId: verification.subjectReferenceId, correlationId: correlationId ?? null };
   }
 
-  private outboxPayload(verificationId: string, organizationId: string | null, userId: string | null, correlationId?: string): Prisma.InputJsonValue {
+  private outboxPayload(verificationId: string, organizationId: string | null, userId: string | null, correlationId?: string): Prisma.InputJsonObject {
     // Contract remains ID-only; subject attributes remain in the verification aggregate and audit record.
     return { verificationId, organizationId, userId, correlationId: correlationId ?? null };
   }
